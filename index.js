@@ -1,10 +1,12 @@
 import express from "express"
 import 'dotenv/config'
+import cors from "cors"
 import { MongoClient } from 'mongodb';
 const app = express()
 const PORT = 8000
 
-
+app.use(cors())
+app.use(express.json())
 const client = new MongoClient(process.env.MONGODB_URI);
 
 export async function connectToMongoDB() {
@@ -16,11 +18,16 @@ export async function connectToMongoDB() {
     console.dir(err);
   }
 }
-connectToMongoDB()
+const mongoClient = await connectToMongoDB()    //mongodb 
+const db = mongoClient.db("last-destination")
+const destinationCollection = db.collection("destination")
 
-app.post("/add-destination", (req, res)=>{
-    console.log("Api called")
-    res.send({message: "API is working..."})
+app.post("/add-destination", async(req, res)=>{
+    const data = req.body
+
+    const result = await destinationCollection.insertOne(data)
+    console.log(result)
+    res.send(result)
 })
 app.get("/",(req, res) =>{
     res.send ({message: "server is running fine"})
